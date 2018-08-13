@@ -1,0 +1,46 @@
+buildscript {
+    ext.kotlin_version = '1.2.30'
+    ext.compile_version_sdk = 28
+    ext.application_id = "com.sergey.ontheroad"
+    ext.min_sdk_version = 23
+    ext.target_sdk_version = 28
+    ext.version_code = 1
+    ext.version_name = "1.0"
+    ext.test_instrumentation_runner = "android.support.test.runner.AndroidJUnitRunner"
+    ext.build_gradle = '3.1.4'
+
+    repositories {
+        google()
+        jcenter()
+    }
+
+    dependencies {
+        classpath "com.android.tools.build:gradle:$build_gradle"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+ext{
+    app_compat_version = '28.0.0-rc01'
+    dessign_version = '27.1.1'
+    gms_play_services = '15.0.1'
+    junit = '4.12'
+    test_runner = '1.0.2'
+    expresso_core = '3.0.2'
+    lifecycle = '1.1.1'
+    dagger_version = '2.16'
+    rx_java_version = '2.1.14-RC1'
+    rx_kotlin_version = '2.2.0'
+    rx_android_version = '2.0.2'
+}
