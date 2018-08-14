@@ -1,13 +1,16 @@
 buildscript {
+    ext.build_gradle = '3.1.4'
     ext.kotlin_version = '1.2.30'
-    ext.compile_version_sdk = 28
-    ext.application_id = "com.sergey.ontheroad"
-    ext.min_sdk_version = 23
-    ext.target_sdk_version = 28
+
+    ext.min_sdk = 22
+    ext.target_sdk = 27
+    ext.compile_sdk = 27
+
     ext.version_code = 1
     ext.version_name = "1.0"
-    ext.test_instrumentation_runner = "android.support.test.runner.AndroidJUnitRunner"
-    ext.build_gradle = '3.1.4'
+    ext.maven_url = 'https://maven.google.com'
+    ext.application_id = "com.sergey.ontheroad"
+    ext.test_runner = "android.support.test.runner.AndroidJUnitRunner"
 
     repositories {
         google()
@@ -24,6 +27,7 @@ allprojects {
     repositories {
         google()
         jcenter()
+        maven { url maven_url }
     }
 }
 
@@ -32,15 +36,27 @@ task clean(type: Delete) {
 }
 
 ext{
-    app_compat_version = '28.0.0-rc01'
-    dessign_version = '27.1.1'
-    gms_play_services = '15.0.1'
-    junit = '4.12'
-    test_runner = '1.0.2'
-    expresso_core = '3.0.2'
-    lifecycle = '1.1.1'
+    // Android version
+    javaxInject_version = '1'
+    appCompat_version = '27.1.1'
+    archComponents_version = '1.1.1'
+    javaxAnnotations_version = '1.0'
+    constraintLayout_version = '1.1.2'
+
+    // Third party version
+    room_version = '1.1.1'
     dagger_version = '2.16'
-    rx_java_version = '2.1.14-RC1'
-    rx_kotlin_version = '2.2.0'
-    rx_android_version = '2.0.2'
+    rxKotlin_version = '2.2.0'
+    rxAndroid_version = '2.0.2'
+    rxJava_version = '2.1.14-RC1'
+
+    // Unit Testing
+    junit_version = '4.12'
+
+    // Acceptance Testing
+    runner_version = '1.0.2-alpha1'
+    espresso_version = '3.0.2-alpha1'
+
+    //Google services
+    gms_play_services = '15.0.1'
 }
