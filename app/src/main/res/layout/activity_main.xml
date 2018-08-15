@@ -10,14 +10,16 @@
         style="@style/Toolbar"
         android:layout_alignParentTop="true">
 
-        <ImageView
-            android:layout_width="wrap_content"
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@mipmap/ic_launcher"
-            tools:ignore="ContentDescription" />
+            android:gravity="center"
+            android:textSize="21sp"
+            android:drawableStart="@mipmap/ic_launcher"
+            android:text="@string/goods_transit"/>
     </android.support.v7.widget.Toolbar>
 
-    <FrameLayout
+    <RelativeLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

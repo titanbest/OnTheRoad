@@ -1,9 +1,8 @@
 package com.sergey.ontheroad.view.activity
 
 import android.os.Bundle
-import com.sergey.ontheroad.view.base.BaseActivity
 import com.sergey.ontheroad.R
-import com.sergey.ontheroad.extension.inTransaction
+import com.sergey.ontheroad.view.base.BaseActivity
 import com.sergey.ontheroad.view.fragments.MapsFragment
 import com.sergey.ontheroad.viewmodel.MainViewModel
 

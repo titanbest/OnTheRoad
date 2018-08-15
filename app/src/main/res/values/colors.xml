@@ -4,5 +4,12 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
+    <color name="colorWhite">#ffffff</color>
+    <color name="colorBlack">#000000</color>
+
     <color name="colorNull">#00000000</color>
+    <color name="colorLightBlack">#3e000000</color>
+
+    <color name="colorRoute">#ff000d</color>
+    <color name="colorCar">#1500ff</color>
 </resources>

@@ -1,8 +1,8 @@
 package com.sergey.ontheroad.view.fragments
 
 import android.animation.ValueAnimator
-import android.arch.lifecycle.ViewModelProviders
 import android.graphics.Bitmap
+import android.graphics.Point
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
@@ -13,16 +13,22 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.*
 import com.sergey.ontheroad.R
+import com.sergey.ontheroad.extension.observe
+import com.sergey.ontheroad.extension.viewModel
+import com.sergey.ontheroad.models.Car
+import com.sergey.ontheroad.models.Route
 import com.sergey.ontheroad.utils.GMapUtil
-import com.sergey.ontheroad.view.LatLngInterpolator
+import com.sergey.ontheroad.utils.LatLngInterpolator
+import com.sergey.ontheroad.utils.drawer.DrawMarker
+import com.sergey.ontheroad.utils.drawer.DrawRouteMaps
 import com.sergey.ontheroad.view.base.BaseFragment
 import com.sergey.ontheroad.viewmodel.MainViewModel
 import kotlinx.android.synthetic.main.fragment_maps.*
 
-class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback, IMapsFragment {
+class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
     companion object {
-        const val DELAY_TIME = 2000L
-        const val BASE_ZOOM = 17f
+        const val DELAY_TIME = 5000L
+        const val BASE_ZOOM = 18f
     }
 
     private lateinit var viewModel: MainViewModel
@@ -34,43 +40,57 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback, I
         super.onViewCreated(view, savedInstanceState)
         imageCar = GMapUtil.getBitmapFromVectorDrawable(activity, R.drawable.ic_car)
 
-        viewModel = ViewModelProviders.of(activity!!)[MainViewModel::class.java]
-        viewModel.setMapsUi(this)
+        setMapSettings(savedInstanceState)
+    }
 
-        defaultMap.onCreate(savedInstanceState)
-        defaultMap.onResume()
-        defaultMap.getMapAsync(this)
+    override fun onPause() {
+        super.onPause()
+        activity!!.finish()
+    }
+
+    private fun setMapSettings(savedInstanceState: Bundle?) = defaultMap.let {
+        it.onCreate(savedInstanceState)
+        it.onResume()
+        it.getMapAsync(this)
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        setBasePosition()
+        viewModel = viewModel(viewModelFactory) {
+            observe(myCar, ::setBasePosition)
+            observe(showCarOnTheMap, ::moveCarOnTheRoad)
+            observe(drawRoute, ::drawRouteModel)
+        }
     }
 
-    override fun setBasePosition() {
-        val myCar = viewModel.getMyCar()
+    private fun setBasePosition(myCar: Car?) {
+        myCar?.let {
+            marker = mMap.addMarker(MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromBitmap(imageCar))
+                    .position(it.position)
+                    .title(it.name))
 
-        marker = mMap.addMarker(MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromBitmap(imageCar))
-                .position(myCar.position)
-                .title(myCar.name))
-
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myCar.position, BASE_ZOOM))
-
-        viewModel.getMoveOnRoute()
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it.position, BASE_ZOOM))
+        }
     }
 
-    override fun moveCarOnTheRoad(car: LatLng) {
+    private fun drawRouteModel(route: Route?){
+        DrawRouteMaps.getInstance(context).draw(route!!.startPosition, route.endPosition, mMap)
+        DrawMarker.getInstance(context).draw(mMap, route.startPosition, R.drawable.ic_marker, "Start position")
+        DrawMarker.getInstance(context).draw(mMap, route.endPosition, R.drawable.ic_marker_finish, "End position")
+    }
+
+    private fun moveCarOnTheRoad(car: LatLng?) {
         val targetLocation = Location(LocationManager.GPS_PROVIDER)
-        targetLocation.latitude = car.latitude
+        targetLocation.latitude = car!!.latitude
         targetLocation.longitude = car.longitude
 
-        animateMarkerNew(targetLocation, marker!!)
+        animateMarkerNew(targetLocation)
     }
 
-    private fun animateMarkerNew(destination: Location, marker: Marker) {
-        val startPosition = marker.position
+    private fun animateMarkerNew(destination: Location) {
+        val startPosition = marker!!.position
         val endPosition = LatLng(destination.latitude, destination.longitude)
 
         val latLngInterpolator = LatLngInterpolator.LinearFixed()
@@ -81,10 +101,10 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback, I
         valueAnimator.addUpdateListener { animation ->
             val v = animation.animatedFraction
             val newPosition = latLngInterpolator.interpolate(v, startPosition, endPosition)
-            marker.position = newPosition
+            marker!!.position = newPosition
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(CameraPosition.Builder().target(newPosition).zoom(BASE_ZOOM).build()))
 
-            marker.rotation = GMapUtil.getBearing(startPosition, LatLng(destination.latitude, destination.longitude))
+            marker!!.rotation = GMapUtil.getBearing(startPosition, LatLng(destination.latitude, destination.longitude))
         }
 
         valueAnimator.start()

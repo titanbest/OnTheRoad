@@ -1,54 +1,68 @@
 package com.sergey.ontheroad.viewmodel
 
-import android.os.Handler
+import android.arch.lifecycle.MutableLiveData
 import com.google.android.gms.maps.model.LatLng
+import com.sergey.ontheroad.extension.random
 import com.sergey.ontheroad.models.Car
-import com.sergey.ontheroad.view.fragments.IMapsFragment
+import com.sergey.ontheroad.models.Route
 import com.sergey.ontheroad.view.fragments.MapsFragment.Companion.DELAY_TIME
+import io.reactivex.Observable
 import java.util.*
+import java.util.concurrent.ThreadLocalRandom
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class MainViewModel @Inject constructor() : BaseViewModel(){
-    private lateinit var activity: IMapsFragment
+class MainViewModel @Inject constructor() : BaseViewModel() {
 
-    fun getMyCar(): Car = Car("BMW I8", LatLng(49.98846416, 36.22633136))
+    private var positionList = ArrayList<LatLng>()
+    private var counter = 0
 
-    fun getMoveOnRoute() {
-        val positionList = ArrayList<LatLng>()
-
-        positionList.add(LatLng(49.98846416, 36.22633136))
-        positionList.add(LatLng(49.98811926, 36.22216858))
-        positionList.add(LatLng(49.98780195, 36.21796287))
-        positionList.add(LatLng(49.98758121, 36.21504463))
-        positionList.add(LatLng(49.98728234, 36.21246622))
-        positionList.add(LatLng(49.98609584, 36.21272371))
-        positionList.add(LatLng(49.98537832, 36.21650959))
-        positionList.add(LatLng(49.98477125, 36.21719624))
-        positionList.add(LatLng(49.98554388, 36.21929909))
-        positionList.add(LatLng(49.98655104, 36.22207786))
-        positionList.add(LatLng(49.98732365, 36.22456695))
-        positionList.add(LatLng(49.98755818, 36.22627283))
-        positionList.add(LatLng(49.98848253, 36.22653032))
-
-        val handler = Handler()
-
-        Timer().schedule(object : TimerTask() {
-            var currentPt = 0
-            override fun run() {
-                handler.post {
-                    if (currentPt < positionList.size) {
-                        activity.moveCarOnTheRoad(positionList[currentPt])
-                        currentPt++
-                        handler.postDelayed(this, DELAY_TIME)
-                    } else {
-                        currentPt = 0
-                    }
-                }
-            }
-        }, DELAY_TIME)
+    val myCar: MutableLiveData<Car> = object : MutableLiveData<Car>() {
+        override fun onActive() {
+            super.onActive()
+            value = Car("BMW I8", LatLng(49.98865707, 36.22775511))
+        }
     }
 
-    fun setMapsUi(activity: IMapsFragment) {
-        this.activity = activity
+    val showCarOnTheMap: MutableLiveData<LatLng> = object : MutableLiveData<LatLng>() {
+        override fun onActive() {
+            super.onActive()
+            setList()
+            Observable.interval(DELAY_TIME, TimeUnit.MILLISECONDS)
+                    .subscribe({
+                        postValue(positionList[counter])
+                        if (counter == positionList.size - 1) counter = 0 else counter++
+                    })
+        }
+    }
+
+    val drawRoute: MutableLiveData<Route> = object : MutableLiveData<Route>() {
+        override fun onActive() {
+            super.onActive()
+            value = Route(positionList[0], positionList[positionList.size - 1])
+        }
+    }
+
+    private fun getRandomLatLng():LatLng{
+        val randomNumX = random(49.98111111, 49.98999999) as Double
+        val randomNumY = random(36.22111111, 36.22999999) as Double
+        return LatLng(randomNumX, randomNumY)
+    }
+
+    private fun setList() {
+        positionList.add(LatLng(49.98865707, 36.22775511))
+        positionList.add(LatLng(49.98854888, 36.22655826))
+        positionList.add(LatLng(49.98840057, 36.22479873))
+        positionList.add(LatLng(49.98827732, 36.22329704))
+        positionList.add(LatLng(49.98820489, 36.22223489))
+        positionList.add(LatLng(49.98805659, 36.22051828))
+        positionList.add(LatLng(49.98791862, 36.21892163))
+        positionList.add(LatLng(49.98767773, 36.21608789))
+        positionList.add(LatLng(49.98907012, 36.21586758))
+        positionList.add(LatLng(49.99023095, 36.21566497))
+        positionList.add(LatLng(49.99096901, 36.21552549))
+        positionList.add(LatLng(49.99120186, 36.21394827))
+        positionList.add(LatLng(49.99056382, 36.21391608))
+        positionList.add(LatLng(49.99050519, 36.21422185))
     }
 }

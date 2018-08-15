@@ -56,7 +56,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/opt/android-studio/plugins/android/lib/android.jar!/images/material_design_icons/maps/ic_navigation_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/opt/android-studio/plugins/android/lib/android.jar!/images/material_design_icons/maps/ic_local_atm_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -66,8 +66,8 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="ff1fdb" />
-                            <entry key="outputName" value="ic_car" />
+                            <entry key="color" value="27ff00" />
+                            <entry key="outputName" value="ic_marker_finish" />
                             <entry key="sourceFile" value="$USER_HOME$" />
                           </map>
                         </option>
