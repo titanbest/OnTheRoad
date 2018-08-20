@@ -1,5 +1,6 @@
 package com.sergey.ontheroad.utils.drawer;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -7,6 +8,7 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class DrawRouteMaps {
 
+    @SuppressLint("StaticFieldLeak")
     private static DrawRouteMaps instance;
     private Context context;
 

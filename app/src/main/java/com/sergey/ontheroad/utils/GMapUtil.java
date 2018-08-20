@@ -6,6 +6,9 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.support.v4.content.ContextCompat;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 
 public class GMapUtil {
@@ -25,7 +28,7 @@ public class GMapUtil {
         return -1;
     }
 
-    public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
+    public static BitmapDescriptor getBitmapFromVectorDrawable(Context context, int drawableId) {
         Drawable drawable = ContextCompat.getDrawable(context, drawableId);
 
         assert drawable != null;
@@ -35,6 +38,6 @@ public class GMapUtil {
         drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
         drawable.draw(canvas);
 
-        return bitmap;
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 }

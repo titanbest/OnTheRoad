@@ -1,8 +1,6 @@
 package com.sergey.ontheroad.view.fragments
 
 import android.animation.ValueAnimator
-import android.graphics.Bitmap
-import android.graphics.Point
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
@@ -11,15 +9,17 @@ import android.view.animation.LinearInterpolator
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.model.*
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.sergey.ontheroad.R
+import com.sergey.ontheroad.extension.draw
 import com.sergey.ontheroad.extension.observe
 import com.sergey.ontheroad.extension.viewModel
 import com.sergey.ontheroad.models.Car
 import com.sergey.ontheroad.models.Route
 import com.sergey.ontheroad.utils.GMapUtil
 import com.sergey.ontheroad.utils.LatLngInterpolator
-import com.sergey.ontheroad.utils.drawer.DrawMarker
 import com.sergey.ontheroad.utils.drawer.DrawRouteMaps
 import com.sergey.ontheroad.view.base.BaseFragment
 import com.sergey.ontheroad.viewmodel.MainViewModel
@@ -28,17 +28,15 @@ import kotlinx.android.synthetic.main.fragment_maps.*
 class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
     companion object {
         const val DELAY_TIME = 5000L
-        const val BASE_ZOOM = 18f
+        const val BASE_ZOOM = 16f
     }
 
     private lateinit var viewModel: MainViewModel
     private lateinit var mMap: GoogleMap
     private var marker: Marker? = null
-    private lateinit var imageCar: Bitmap
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        imageCar = GMapUtil.getBitmapFromVectorDrawable(activity, R.drawable.ic_car)
 
         setMapSettings(savedInstanceState)
     }
@@ -66,10 +64,7 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
 
     private fun setBasePosition(myCar: Car?) {
         myCar?.let {
-            marker = mMap.addMarker(MarkerOptions()
-                    .icon(BitmapDescriptorFactory.fromBitmap(imageCar))
-                    .position(it.position)
-                    .title(it.name))
+            marker = mMap.draw(activity!!, it.position, R.drawable.ic_car, it.name)
 
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it.position, BASE_ZOOM))
         }
@@ -77,8 +72,9 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
 
     private fun drawRouteModel(route: Route?){
         DrawRouteMaps.getInstance(context).draw(route!!.startPosition, route.endPosition, mMap)
-        DrawMarker.getInstance(context).draw(mMap, route.startPosition, R.drawable.ic_marker, "Start position")
-        DrawMarker.getInstance(context).draw(mMap, route.endPosition, R.drawable.ic_marker_finish, "End position")
+
+        mMap.draw(activity!!, route.startPosition, R.drawable.ic_marker, "Start position")
+        mMap.draw(activity!!, route.endPosition, R.drawable.ic_marker_finish, "End position")
     }
 
     private fun moveCarOnTheRoad(car: LatLng?) {

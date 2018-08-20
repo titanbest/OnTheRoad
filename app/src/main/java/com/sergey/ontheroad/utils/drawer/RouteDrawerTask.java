@@ -1,5 +1,6 @@
 package com.sergey.ontheroad.utils.drawer;
 
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -63,7 +64,8 @@ public class RouteDrawerTask extends AsyncTask<String, Integer, List<List<HashMa
             lineOptions.width(6);
         }
 
-        lineOptions.color(ContextCompat.getColor(DrawRouteMaps.getContext(), R.color.colorRoute));
+        lineOptions.color(Color.RED);
+//        lineOptions.color(ContextCompat.getColor(DrawRouteMaps.getContext(), R.color.colorRoute));
 
         if (mMap != null) {
             mMap.addPolyline(lineOptions);

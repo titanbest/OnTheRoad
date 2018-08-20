@@ -2,13 +2,11 @@ package com.sergey.ontheroad.viewmodel
 
 import android.arch.lifecycle.MutableLiveData
 import com.google.android.gms.maps.model.LatLng
-import com.sergey.ontheroad.extension.random
 import com.sergey.ontheroad.models.Car
 import com.sergey.ontheroad.models.Route
 import com.sergey.ontheroad.view.fragments.MapsFragment.Companion.DELAY_TIME
 import io.reactivex.Observable
 import java.util.*
-import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -41,12 +39,6 @@ class MainViewModel @Inject constructor() : BaseViewModel() {
             super.onActive()
             value = Route(positionList[0], positionList[positionList.size - 1])
         }
-    }
-
-    private fun getRandomLatLng():LatLng{
-        val randomNumX = random(49.98111111, 49.98999999) as Double
-        val randomNumY = random(36.22111111, 36.22999999) as Double
-        return LatLng(randomNumX, randomNumY)
     }
 
     private fun setList() {

@@ -43,6 +43,14 @@ dependencies {
     //Google services
     implementation "com.google.android.gms:play-services-maps:$rootProject.ext.gms_play_services"
 
+    //Retrofit
+    implementation "com.google.code.gson:gson:$rootProject.ext.gson_version"
+    implementation "com.squareup.retrofit2:retrofit:$rootProject.ext.retrofit_version"
+    implementation "com.squareup.retrofit2:converter-gson:$rootProject.ext.retrofit_version"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:$rootProject.ext.retrofit_version"
+    implementation "com.squareup.okhttp3:okhttp:$rootProject.ext.okHttp_version"
+    implementation "com.squareup.okhttp3:logging-interceptor:$rootProject.ext.okHttp_version"
+
     //Lifecycle
     kapt "android.arch.lifecycle:compiler:$rootProject.ext.archComponents_version"
     implementation "android.arch.lifecycle:extensions:$rootProject.ext.archComponents_version"
