@@ -2,6 +2,7 @@ package com.sergey.ontheroad.di.module
 
 import android.content.Context
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.sergey.data.repository.ServerApi
 import com.sergey.data.repository.ServerApi.Companion.BASE_URL
 import com.sergey.data.repository.ServerStorage
@@ -23,6 +24,14 @@ class ApplicationModule {
     @Provides
     @PerApplication
     fun provideApplicationContext(application: RouteApp): Context = application
+
+    @Provides
+    @PerApplication
+    fun provideGson(): Gson {
+        return GsonBuilder()
+                .setLenient()
+                .create()
+    }
 
     @Provides
     @PerApplication

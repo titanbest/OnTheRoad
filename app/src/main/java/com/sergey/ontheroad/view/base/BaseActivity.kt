@@ -31,7 +31,7 @@ abstract class BaseActivity(private val layoutId: Int) : DaggerAppCompatActivity
         }
     }
 
-    private fun addFragment(savedInstanceState: Bundle?) = savedInstanceState ?: fragment()?.let {
+    protected fun addFragment(savedInstanceState: Bundle?) = savedInstanceState ?: fragment()?.let {
         supportFragmentManager.inTransaction { add(R.id.fragmentContainer, it) }
     }
 

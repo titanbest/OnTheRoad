@@ -1,22 +1,16 @@
 package com.sergey.data.repository
 
-import com.sergey.data.entity.LatLngEntity
-import com.sergey.domain.entity.LatLngs
 import io.reactivex.Single
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface ServerApi{
+interface ServerApi {
 
     @GET("maps/api/directions/json?")
     fun loadFunds(
-            @Query("origin") startPosition: LatLngEntity,
-            @Query("destination") endPosition: LatLngEntity,
-            @Query("sensor") serialize:Boolean):
-            Single<String>
-//            Single<List<List<LatLngs>>>
-
-
+            @Query(value = "origin") position: String,
+            @Query(value = "destination") destination: String,
+            @Query("sensor") sensor: Boolean): Single<String>
 
     companion object {
         const val BASE_URL = "https://maps.googleapis.com/"

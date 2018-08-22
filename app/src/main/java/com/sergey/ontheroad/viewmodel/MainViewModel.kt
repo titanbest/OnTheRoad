@@ -2,15 +2,20 @@ package com.sergey.ontheroad.viewmodel
 
 import android.arch.lifecycle.MutableLiveData
 import com.google.android.gms.maps.model.LatLng
+import com.sergey.data.entity.Route
+import com.sergey.domain.entity.LatLngDomain
+import com.sergey.domain.entity.RouteDomain
+import com.sergey.domain.repository.ServerRepository
 import com.sergey.ontheroad.models.Car
-import com.sergey.ontheroad.models.Route
 import com.sergey.ontheroad.view.fragments.MapsFragment.Companion.DELAY_TIME
 import io.reactivex.Observable
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class MainViewModel @Inject constructor() : BaseViewModel() {
+class MainViewModel @Inject constructor(
+//        private val getRoadFlow: Flow<RouteDomain, String, GetRoadUseCase>
+) : BaseViewModel() {
 
     private var positionList = ArrayList<LatLng>()
     private var counter = 0

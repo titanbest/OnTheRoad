@@ -1,4 +1,4 @@
-package com.sergey.ontheroad.models
+package com.sergey.data.entity
 
 import com.google.android.gms.maps.model.LatLng
 

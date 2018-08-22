@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.LinearInterpolator
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -12,18 +13,25 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import com.sergey.data.entity.Route
+import com.sergey.domain.entity.LatLngDomain
+import com.sergey.domain.entity.RouteDomain
+import com.sergey.domain.repository.ServerRepository
 import com.sergey.ontheroad.R
 import com.sergey.ontheroad.extension.draw
 import com.sergey.ontheroad.extension.observe
 import com.sergey.ontheroad.extension.viewModel
 import com.sergey.ontheroad.models.Car
-import com.sergey.ontheroad.models.Route
 import com.sergey.ontheroad.utils.GMapUtil
 import com.sergey.ontheroad.utils.LatLngInterpolator
-import com.sergey.ontheroad.utils.drawer.DrawRouteMaps
+import com.sergey.ontheroad.utils.drawer.DrawRoute
+import com.sergey.ontheroad.utils.readRound
+import com.sergey.ontheroad.utils.sendAddress
 import com.sergey.ontheroad.view.base.BaseFragment
 import com.sergey.ontheroad.viewmodel.MainViewModel
+import io.reactivex.Single
 import kotlinx.android.synthetic.main.fragment_maps.*
+import javax.inject.Inject
 
 class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
     companion object {
@@ -59,7 +67,14 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
             observe(myCar, ::setBasePosition)
             observe(showCarOnTheMap, ::moveCarOnTheRoad)
             observe(drawRoute, ::drawRouteModel)
+//            observe(getStringRoad, ::setStringToLog)
         }
+
+        setStringToLog()
+    }
+
+    private fun setStringToLog() {
+
     }
 
     private fun setBasePosition(myCar: Car?) {
@@ -70,8 +85,12 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
         }
     }
 
-    private fun drawRouteModel(route: Route?){
-        DrawRouteMaps.getInstance(context).draw(route!!.startPosition, route.endPosition, mMap)
+    private fun drawRouteModel(route: Route?) {
+//        DrawRoute(mMap).execute(GMapUtil.getUrl(route!!.startPosition, route.endPosition))
+        Single.just(GMapUtil.getUrl(route!!.startPosition, route.endPosition))
+                .map { sendAddress(it) }
+                .map { mMap.readRound(it) }
+                .subscribe()
 
         mMap.draw(activity!!, route.startPosition, R.drawable.ic_marker, "Start position")
         mMap.draw(activity!!, route.endPosition, R.drawable.ic_marker_finish, "End position")

@@ -12,6 +12,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import okhttp3.OkHttpClient;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+
 public class DrawRoute extends AsyncTask<String, Void, String> {
 
     private GoogleMap mMap;
@@ -39,22 +43,17 @@ public class DrawRoute extends AsyncTask<String, Void, String> {
         routeDrawerTask.execute(result);
     }
 
-    /**
-     * A method to download json data from url
-     */
     private String getJsonRoutePoint(String strUrl) throws IOException {
         String data = "";
-        InputStream iStream = null;
-        HttpURLConnection urlConnection = null;
-        try {
-            URL url = new URL(strUrl);
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.connect();
-            iStream = urlConnection.getInputStream();
 
+        URL url = new URL(strUrl);
+        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        urlConnection.connect();
+
+        try (InputStream iStream = urlConnection.getInputStream()) {
             BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
 
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
 
             String line = "";
             while ((line = br.readLine()) != null) {
@@ -62,13 +61,12 @@ public class DrawRoute extends AsyncTask<String, Void, String> {
             }
 
             data = sb.toString();
-            Log.d("getJsonRoutePoint", data.toString());
+            Log.d("getJsonRoutePoint", data);
             br.close();
 
         } catch (Exception e) {
             Log.d("Exception", e.toString());
         } finally {
-            iStream.close();
             urlConnection.disconnect();
         }
         return data;

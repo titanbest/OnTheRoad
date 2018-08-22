@@ -2,13 +2,12 @@ package com.sergey.ontheroad.utils.drawer;
 
 import android.graphics.Color;
 import android.os.AsyncTask;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.sergey.ontheroad.R;
+import com.sergey.ontheroad.utils.RouteParser;
 
 import org.json.JSONObject;
 
@@ -31,7 +30,7 @@ public class RouteDrawerTask extends AsyncTask<String, Integer, List<List<HashMa
 
         try {
             jObject = new JSONObject(jsonData[0]);
-            DataRouteParser parser = new DataRouteParser();
+            RouteParser parser = new RouteParser();
             routes = parser.parse(jObject);
             Log.d("RouteDrawerTask", "Executing routes" + routes.toString());
         } catch (Exception e) {
@@ -43,35 +42,31 @@ public class RouteDrawerTask extends AsyncTask<String, Integer, List<List<HashMa
 
     @Override
     protected void onPostExecute(List<List<HashMap<String, String>>> result) {
-        if (result != null) drawPolyLine(result);
-    }
+        if (result != null) {
+            PolylineOptions lineOptions = new PolylineOptions();
+            ArrayList<LatLng> points = new ArrayList<>();
 
-    private void drawPolyLine(List<List<HashMap<String, String>>> result) {
-        PolylineOptions lineOptions = new PolylineOptions();
-        ArrayList<LatLng> points = new ArrayList<>();
+            for (int i = 0; i < result.size(); i++) {
 
-        for (int i = 0; i < result.size(); i++) {
+                List<HashMap<String, String>> path = result.get(i);
 
-            List<HashMap<String, String>> path = result.get(i);
+                for (int j = 0; j < path.size(); j++) {
+                    points.add(new LatLng(
+                            Double.parseDouble(path.get(j).get("lat")),
+                            Double.parseDouble(path.get(j).get("lng"))));
+                }
 
-            for (int j = 0; j < path.size(); j++) {
-                points.add(new LatLng(
-                        Double.parseDouble(path.get(j).get("lat")),
-                        Double.parseDouble(path.get(j).get("lng"))));
+                lineOptions.addAll(points);
+                lineOptions.width(6);
             }
 
-            lineOptions.addAll(points);
-            lineOptions.width(6);
-        }
+            lineOptions.color(Color.RED);
 
-        lineOptions.color(Color.RED);
-//        lineOptions.color(ContextCompat.getColor(DrawRouteMaps.getContext(), R.color.colorRoute));
-
-        if (mMap != null) {
-            mMap.addPolyline(lineOptions);
-        } else {
-            Log.d("onPostExecute", "Without polyline's draw");
+            if (mMap != null) {
+                mMap.addPolyline(lineOptions);
+            } else {
+                Log.d("onPostExecute", "Without polyline's draw");
+            }
         }
     }
-
 }
