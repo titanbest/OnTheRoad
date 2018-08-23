@@ -11,8 +11,8 @@ import javax.inject.Inject
 
 abstract class UseCase<TReturnType, in TParamsType> internal constructor() {
 
-    @Inject private lateinit var threadExecutor: ThreadExecutor
-    @Inject private lateinit var postExecutionThread: PostExecutionThread
+    @Inject lateinit var threadExecutor: ThreadExecutor
+    @Inject lateinit var postExecutionThread: PostExecutionThread
 
     private var disposables: CompositeDisposable = CompositeDisposable()
 

@@ -1,10 +1,12 @@
-package com.sergey.ontheroad.utils
+package com.sergey.ontheroad.extension
 
 import android.content.Context
 import com.sergey.data.executor.JobExecutor
 import com.sergey.domain.interactor.UseCase
 import com.sergey.domain.mapper.OutputMapper
 import com.sergey.ontheroad.exception.ErrorMessageFactory
+import com.sergey.ontheroad.utils.IDisposable
+import com.sergey.ontheroad.utils.UIThread
 import com.sergey.ontheroad.viewmodel.BaseViewModel
 import io.reactivex.Single
 import io.reactivex.observers.DisposableObserver

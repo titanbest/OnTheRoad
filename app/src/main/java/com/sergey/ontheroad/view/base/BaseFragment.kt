@@ -24,18 +24,16 @@ import javax.inject.Inject
  */
 abstract class BaseFragment(private val layoutId: Int) : DaggerFragment() {
 
-    @Inject
-    protected lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
     protected var binding: ViewDataBinding? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = DataBindingUtil.inflate(inflater, layoutId, container, false)
         return binding?.root ?: inflater.inflate(layoutId, container, false)
-//        return inflater.inflate(layoutId, container, false)
     }
 
-    open fun onBackPressed(): Boolean {
+    open fun onBackPressed():Boolean {
         return true
     }
 

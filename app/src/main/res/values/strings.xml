@@ -12,6 +12,9 @@
     <!--TITLE ACTIVITY-->
     <string name="title_activity_maps">Road</string>
 
+    <!--MENU-->
+    <string name="search">Search</string>
+
     <!--ALL OTHERS RESOURCES-->
     <string name="loading">Loading</string>
     <string name="goods_transit">The goods are in transit</string>

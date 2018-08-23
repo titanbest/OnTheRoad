@@ -16,8 +16,7 @@ import javax.inject.Inject
  */
 abstract class BaseActivity(private val layoutId: Int) : DaggerAppCompatActivity() {
 
-    @Inject
-    lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,13 +26,18 @@ abstract class BaseActivity(private val layoutId: Int) : DaggerAppCompatActivity
 
     override fun onBackPressed() {
         fragment()?.let {
-            if ((supportFragmentManager.findFragmentById(R.id.fragmentContainer) as BaseFragment).onBackPressed()) super.onBackPressed()
+            if((supportFragmentManager.findFragmentById(R.id.fragmentContainer) as BaseFragment).onBackPressed())
+                super.onBackPressed()
         }
+//        super.onBackPressed()
     }
 
-    protected fun addFragment(savedInstanceState: Bundle?) = savedInstanceState ?: fragment()?.let {
-        supportFragmentManager.inTransaction { add(R.id.fragmentContainer, it) }
-    }
+    private fun addFragment(savedInstanceState: Bundle?) =
+            savedInstanceState ?: fragment()?.let {
+                supportFragmentManager.inTransaction {
+                    add(R.id.fragmentContainer, it)
+                }
+            }
 
     abstract fun fragment(): BaseFragment?
 }

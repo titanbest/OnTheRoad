@@ -1,43 +1,30 @@
 package com.sergey.ontheroad.view.fragments
 
-import android.animation.ValueAnimator
+import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
+import android.text.TextUtils
 import android.util.Log
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.View
-import android.view.animation.LinearInterpolator
+import android.widget.SearchView
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
-import com.sergey.data.entity.Route
-import com.sergey.domain.entity.LatLngDomain
-import com.sergey.domain.entity.RouteDomain
-import com.sergey.domain.repository.ServerRepository
+import com.sergey.data.entity.Address
 import com.sergey.ontheroad.R
-import com.sergey.ontheroad.extension.draw
-import com.sergey.ontheroad.extension.observe
-import com.sergey.ontheroad.extension.viewModel
+import com.sergey.ontheroad.extension.*
 import com.sergey.ontheroad.models.Car
-import com.sergey.ontheroad.utils.GMapUtil
-import com.sergey.ontheroad.utils.LatLngInterpolator
-import com.sergey.ontheroad.utils.drawer.DrawRoute
-import com.sergey.ontheroad.utils.readRound
-import com.sergey.ontheroad.utils.sendAddress
 import com.sergey.ontheroad.view.base.BaseFragment
 import com.sergey.ontheroad.viewmodel.MainViewModel
-import io.reactivex.Single
 import kotlinx.android.synthetic.main.fragment_maps.*
-import javax.inject.Inject
+import java.io.IOException
 
 class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
-    companion object {
-        const val DELAY_TIME = 5000L
-        const val BASE_ZOOM = 16f
-    }
 
     private lateinit var viewModel: MainViewModel
     private lateinit var mMap: GoogleMap
@@ -45,13 +32,16 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setMapSettings(savedInstanceState)
+        initView()
     }
 
-    override fun onPause() {
-        super.onPause()
-        activity!!.finish()
+    private fun initView() {
+        toolbar.inflateMenu(R.menu.main_menu)
+        buttonMoveCar.setOnClickListener {
+            observe(viewModel.moveCarOnTheMap, ::moveCarOnTheRoad)
+            observe(viewModel.drawAddress, ::drawRouteAddress)
+        }
     }
 
     private fun setMapSettings(savedInstanceState: Bundle?) = defaultMap.let {
@@ -64,36 +54,21 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
         mMap = googleMap
 
         viewModel = viewModel(viewModelFactory) {
-            observe(myCar, ::setBasePosition)
-            observe(showCarOnTheMap, ::moveCarOnTheRoad)
-            observe(drawRoute, ::drawRouteModel)
-//            observe(getStringRoad, ::setStringToLog)
+            observe(basePosition, ::setBasePosition)
+            observe(getData, ::showData)
         }
-
-        setStringToLog()
-    }
-
-    private fun setStringToLog() {
-
     }
 
     private fun setBasePosition(myCar: Car?) {
         myCar?.let {
             marker = mMap.draw(activity!!, it.position, R.drawable.ic_car, it.name)
-
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it.position, BASE_ZOOM))
         }
     }
 
-    private fun drawRouteModel(route: Route?) {
-//        DrawRoute(mMap).execute(GMapUtil.getUrl(route!!.startPosition, route.endPosition))
-        Single.just(GMapUtil.getUrl(route!!.startPosition, route.endPosition))
-                .map { sendAddress(it) }
-                .map { mMap.readRound(it) }
-                .subscribe()
-
-        mMap.draw(activity!!, route.startPosition, R.drawable.ic_marker, "Start position")
-        mMap.draw(activity!!, route.endPosition, R.drawable.ic_marker_finish, "End position")
+    private fun drawRouteAddress(address: Address?) {
+        mMap.draw(activity!!, address!!.startPosition, R.drawable.ic_marker, splitString(address.startTitle))
+        mMap.draw(activity!!, address.endPosition, R.drawable.ic_marker, splitString(address.endTitle))
     }
 
     private fun moveCarOnTheRoad(car: LatLng?) {
@@ -101,27 +76,54 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
         targetLocation.latitude = car!!.latitude
         targetLocation.longitude = car.longitude
 
-        animateMarkerNew(targetLocation)
+        mMap.animateMarker(marker!!, targetLocation)
     }
 
-    private fun animateMarkerNew(destination: Location) {
-        val startPosition = marker!!.position
-        val endPosition = LatLng(destination.latitude, destination.longitude)
+    private fun showData(pointList: ArrayList<LatLng>?) {
+        mMap.paintPolyline(pointList!!)
+    }
 
-        val latLngInterpolator = LatLngInterpolator.LinearFixed()
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater!!.inflate(R.menu.main_menu, menu)
 
-        val valueAnimator = ValueAnimator.ofFloat(0F, 1F)
-        valueAnimator.duration = DELAY_TIME
-        valueAnimator.interpolator = LinearInterpolator()
-        valueAnimator.addUpdateListener { animation ->
-            val v = animation.animatedFraction
-            val newPosition = latLngInterpolator.interpolate(v, startPosition, endPosition)
-            marker!!.position = newPosition
-            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(CameraPosition.Builder().target(newPosition).zoom(BASE_ZOOM).build()))
+        val item = menu!!.findItem(R.id.menuSearch)
+        val searchView = item.actionView as SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(p0: String?): Boolean {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
 
-            marker!!.rotation = GMapUtil.getBearing(startPosition, LatLng(destination.latitude, destination.longitude))
-        }
+            override fun onQueryTextChange(p0: String?): Boolean {
+                val addressList: List<android.location.Address>
 
-        valueAnimator.start()
+                if (!TextUtils.isEmpty(p0)) {
+                    val geocoder = Geocoder(activity!!)
+                    try {
+                        addressList = geocoder.getFromLocationName(p0, 1)
+
+                        val address = addressList[0]
+                        val latLng = LatLng(address.latitude, address.longitude)
+                        Log.d("DLOG", "Coordinates: $latLng")
+
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
+
+
+                    return true
+                } else return false
+            }
+        })
+    }
+
+    override fun onPause() {
+        super.onPause()
+        activity!!.finish()
+    }
+
+    companion object {
+        const val DELAY_TIME = 1000L
+        const val BASE_ZOOM = 15f
     }
 }

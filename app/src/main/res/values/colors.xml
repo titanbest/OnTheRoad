@@ -9,7 +9,7 @@
 
     <color name="colorNull">#00000000</color>
     <color name="colorLightBlack">#3e000000</color>
-
-    <color name="colorRoute">#ff000d</color>
     <color name="colorCar">#1500ff</color>
+    <color name="colorMarker">#ff0008</color>
+    <color name="buttonMoveCar">#235266</color>
 </resources>

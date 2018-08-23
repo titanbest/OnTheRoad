@@ -1,6 +1,6 @@
 package com.sergey.domain.entity
 
-class RouteDomain(
+class AddressDomain(
         val startPosition: LatLngDomain,
         val endPosition: LatLngDomain
 )
