@@ -5,12 +5,14 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.location.Geocoder
 import android.location.Location
 import android.support.v4.content.ContextCompat
 import android.view.animation.LinearInterpolator
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
+import com.sergey.ontheroad.models.ItemMapPosition
 import com.sergey.ontheroad.utils.LatLngInterpolator
 import com.sergey.ontheroad.view.fragments.MapsFragment
 
@@ -75,5 +77,17 @@ fun getBearing(begin: LatLng, end: LatLng): Float {
         return (90 - Math.toDegrees(Math.atan(lng / lat)) + 270).toFloat()
 
     return -1f
+}
+
+fun getStreet(context: Context, p0: String): ItemMapPosition? {
+    val addressList: List<android.location.Address>
+    val geocoder = Geocoder(context)
+    if (!p0.isEmpty()) {
+        addressList = geocoder.getFromLocationName(p0, 1)
+        if (!addressList.isEmpty()) {
+            val address = addressList[0]
+            return ItemMapPosition(address.thoroughfare + ", " + address.subThoroughfare, LatLng(address.latitude, address.longitude))
+        } else return null
+    } else return null
 }
 

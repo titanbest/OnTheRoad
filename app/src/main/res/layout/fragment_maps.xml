@@ -11,6 +11,7 @@
         android:layout_alignParentTop="true">
 
         <TextView
+            android:id="@+id/toolbarTextTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -19,11 +20,16 @@
             android:text="@string/goods_transit"/>
     </android.support.v7.widget.Toolbar>
 
+    <android.support.v7.widget.SearchView
+        android:id="@+id/editDirectionAddress"
+        style="@style/Toolbar"
+        android:layout_below="@id/toolbar"/>
+
     <com.google.android.gms.maps.MapView
         android:id="@+id/defaultMap"
-        android:layout_below="@id/toolbar"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
+        android:layout_below="@id/editDirectionAddress"
         android:layout_height="match_parent" />
 
     <android.support.v7.widget.AppCompatImageButton

@@ -1,17 +1,17 @@
 package com.sergey.ontheroad.viewmodel
 
 import android.arch.lifecycle.MutableLiveData
-import android.util.Log
+import android.content.Context
 import com.google.android.gms.maps.model.LatLng
-import com.sergey.data.entity.Address
 import com.sergey.data.entity.SendAddress
 import com.sergey.data.mapper.AddressMapper
 import com.sergey.domain.entity.AddressDomain
 import com.sergey.domain.entity.Routes
 import com.sergey.domain.interactor.GetRoadUseCase
-import com.sergey.ontheroad.models.Car
 import com.sergey.ontheroad.extension.Flow
 import com.sergey.ontheroad.extension.decodePolyline
+import com.sergey.ontheroad.extension.getStreet
+import com.sergey.ontheroad.models.ItemMapPosition
 import com.sergey.ontheroad.view.fragments.MapsFragment.Companion.DELAY_TIME
 import io.reactivex.Observable
 import java.util.*
@@ -24,9 +24,10 @@ class MainViewModel @Inject constructor(val getRoadFlow: Flow<AddressDomain, Rou
     private var listRoute = ArrayList<LatLng>()
     private var counter = 0
     private lateinit var route: Routes
-    private val car = Car("BMW I8", LatLng(49.98865707, 36.22775511))
+    private val car = ItemMapPosition("BMW I8", LatLng(49.98865707, 36.22775511))
+    private var directPosition: ItemMapPosition?= null
 
-    val basePosition: MutableLiveData<Car> = object : MutableLiveData<Car>() {
+    val basePosition: MutableLiveData<ItemMapPosition> = object : MutableLiveData<ItemMapPosition>() {
         override fun onActive() {
             super.onActive()
             value = car
@@ -39,7 +40,7 @@ class MainViewModel @Inject constructor(val getRoadFlow: Flow<AddressDomain, Rou
 
             getRoadFlow.run(AddressMapper.transformToDomain(SendAddress(
                     car.position,
-                    LatLng(49.9827515, 36.23092224)))
+                    directPosition!!.position))
             ) {
                 route = it
                 listRoute.clear()
@@ -60,14 +61,15 @@ class MainViewModel @Inject constructor(val getRoadFlow: Flow<AddressDomain, Rou
         }
     }
 
-    val drawAddress: MutableLiveData<Address> = object : MutableLiveData<Address>() {
+    val getSearchAddress: MutableLiveData<ItemMapPosition> = object : MutableLiveData<ItemMapPosition>() {
         override fun onActive() {
             super.onActive()
-            value = Address(
-                    listRoute[0],
-                    listRoute[listRoute.size - 1],
-                    route.routes[0].legs[0].start_address,
-                    route.routes[0].legs[0].end_address)
+            value = directPosition
         }
     }
+
+    fun setSearchAddress(context: Context, p0: String) = getStreet(context, p0)?.let { directPosition = it }
 }
+
+//  Харьков, полтавский шлях 134
+//  Харьков, проспект Юбилейный, 38
