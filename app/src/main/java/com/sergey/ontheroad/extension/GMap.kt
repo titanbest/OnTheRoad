@@ -61,7 +61,7 @@ fun getBitmapFromVectorDrawable(context: Context, drawableId: Int): BitmapDescri
     return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
 
-fun splitString(str: String): String = str.substring(0, str.indexOf(','))
+//fun splitString(str: String): String = str.substring(0, str.indexOf(','))
 
 fun getBearing(begin: LatLng, end: LatLng): Float {
     val lat = Math.abs(begin.latitude - end.latitude)
@@ -79,15 +79,18 @@ fun getBearing(begin: LatLng, end: LatLng): Float {
     return -1f
 }
 
+fun getStreetList(context: Context, p0: String): List<android.location.Address> {
+    return  Geocoder(context).getFromLocationName(p0, 1)
+}
+
 fun getStreet(context: Context, p0: String): ItemMapPosition? {
-    val addressList: List<android.location.Address>
-    val geocoder = Geocoder(context)
-    if (!p0.isEmpty()) {
-        addressList = geocoder.getFromLocationName(p0, 1)
+    return if (!p0.isEmpty()) {
+        val addressList: List<android.location.Address> = Geocoder(context).getFromLocationName(p0, 1)
         if (!addressList.isEmpty()) {
             val address = addressList[0]
-            return ItemMapPosition(address.thoroughfare + ", " + address.subThoroughfare, LatLng(address.latitude, address.longitude))
-        } else return null
-    } else return null
+            ItemMapPosition(address.thoroughfare + ", " + address.subThoroughfare, LatLng(address.latitude, address.longitude))
+        } else null
+    } else null
 }
+
 

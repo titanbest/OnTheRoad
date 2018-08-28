@@ -24,7 +24,7 @@ class MainViewModel @Inject constructor(val getRoadFlow: Flow<AddressDomain, Rou
     private var listRoute = ArrayList<LatLng>()
     private var counter = 0
     private lateinit var route: Routes
-    private val car = ItemMapPosition("BMW I8", LatLng(49.98865707, 36.22775511))
+    private val car = ItemMapPosition("Zonda Pagani", LatLng(49.98865707, 36.22775511))
     private var directPosition: ItemMapPosition?= null
 
     val basePosition: MutableLiveData<ItemMapPosition> = object : MutableLiveData<ItemMapPosition>() {
@@ -68,7 +68,7 @@ class MainViewModel @Inject constructor(val getRoadFlow: Flow<AddressDomain, Rou
         }
     }
 
-    fun setSearchAddress(context: Context, p0: String) = getStreet(context, p0)?.let { directPosition = it }
+    fun setSearchAddress(context: Context, p0: String?) = p0?.let { directPosition = getStreet(context, p0) }
 }
 
 //  Харьков, полтавский шлях 134

@@ -20,13 +20,22 @@
             android:text="@string/goods_transit"/>
     </android.support.v7.widget.Toolbar>
 
-    <android.support.v7.widget.SearchView
+    <AutoCompleteTextView
         android:id="@+id/editDirectionAddress"
         style="@style/Toolbar"
-        android:layout_below="@id/toolbar"/>
+        android:layout_below="@+id/toolbar"
+        android:drawableEnd="@drawable/ic_search"
+        android:imeOptions="actionSearch"
+        android:inputType="text"
+        android:hint="Set address"
+        android:maxLines="1"
+        android:paddingEnd="16dp"
+        android:paddingStart="16dp"
+        tools:ignore="RtlHardcoded" />
 
     <com.google.android.gms.maps.MapView
         android:id="@+id/defaultMap"
+        android:visibility="gone"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_below="@id/editDirectionAddress"

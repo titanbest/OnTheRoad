@@ -3,7 +3,13 @@ package com.sergey.ontheroad.view.fragments
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.util.Log
 import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.widget.ArrayAdapter
+import android.widget.TextView
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -14,11 +20,7 @@ import com.sergey.ontheroad.extension.*
 import com.sergey.ontheroad.models.ItemMapPosition
 import com.sergey.ontheroad.view.base.BaseFragment
 import com.sergey.ontheroad.viewmodel.MainViewModel
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_maps.*
-import java.util.concurrent.TimeUnit
 
 class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
 
@@ -55,7 +57,6 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
     }
 
     private fun setDirectPosition(myItemMapPosition: ItemMapPosition?) {
-        editDirectionAddress.isFocusable = false
         myItemMapPosition?.let {
             markerDirectory = mMap.draw(activity!!, it.position, R.drawable.ic_marker, it.name)
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it.position, BASE_ZOOM))
@@ -75,28 +76,69 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
     }
 
     private fun initView() {
-        editDirectionAddress.setOnQueryTextListener(object : android.support.v7.widget.SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(p0: String?): Boolean {
+        editDirectionAddress.setOnEditorActionListener(TextView.OnEditorActionListener { text, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                Log.d("LOG", "HI :: ${text.text}")
+                val name = text.text.toString()
+                viewModel.setSearchAddress(activity!!, name)
+                this@MapsFragment.editDirectionAddress.clearFocus()
+
                 observe(viewModel.getSearchAddress, ::setDirectPosition)
-                editDirectionAddress.clearFocus()
-                return true
+                return@OnEditorActionListener false
             }
-
-            override fun onQueryTextChange(p0: String?): Boolean {
-                Observable.just(p0)
-                        .debounce(1, TimeUnit.SECONDS)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .filter { !it.isEmpty() }
-                        .subscribe({
-                            viewModel.setSearchAddress(activity!!, p0!!)
-                        })
-
-                return true
-            }
+            false
         })
 
-        
+        val list = emptyArray<ItemMapPosition>()
+        editDirectionAddress.threshold = 3
+        val adapterCountries = ArrayAdapter(activity!!, android.R.layout.simple_list_item_1, list)
+
+        editDirectionAddress.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+            }
+
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                val arrayList = getStreetList(context!!, p0.toString())
+
+                for (i in arrayList.indices) {
+                    list[i] = ItemMapPosition(arrayList[i].thoroughfare + ", " + arrayList[i].subThoroughfare, LatLng(arrayList[i].latitude, arrayList[i].longitude))
+                }
+
+                adapterCountries.notifyDataSetChanged()
+                editDirectionAddress.setAdapter(adapterCountries)
+
+//                Observable.just(p0)
+//                        .debounce(1, TimeUnit.SECONDS)
+//                        .subscribeOn(Schedulers.io())
+//                        .observeOn(AndroidSchedulers.mainThread())
+//                        .filter { !it.isEmpty() }
+//                        .subscribe({
+//                            viewModel.setSearchAddress(activity!!, p0.toString())
+//                        })
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+            }
+
+//            override fun onQueryTextSubmit(p0: String?): Boolean {
+//                observe(viewModel.getSearchAddress, ::setDirectPosition)
+//                editDirectionAddress.clearFocus()
+//                return true
+//            }
+//
+//            override fun onQueryTextChange(p0: String?): Boolean {
+//                Observable.just(p0)
+//                        .debounce(1, TimeUnit.SECONDS)
+//                        .subscribeOn(Schedulers.io())
+//                        .observeOn(AndroidSchedulers.mainThread())
+//                        .filter { !it.isEmpty() }
+//                        .subscribe({
+//                            viewModel.setSearchAddress(activity!!, p0!!)
+//                        })
+//
+//                return true
+//            }
+        })
 
         buttonMoveCar.setOnClickListener {
             observe(viewModel.getData, ::showData)
