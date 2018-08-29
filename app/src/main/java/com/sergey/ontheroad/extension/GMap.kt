@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.location.Geocoder
 import android.location.Location
 import android.support.v4.content.ContextCompat
+import android.text.TextUtils
 import android.view.animation.LinearInterpolator
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -79,8 +80,30 @@ fun getBearing(begin: LatLng, end: LatLng): Float {
     return -1f
 }
 
-fun getStreetList(context: Context, p0: String): List<android.location.Address> {
-    return  Geocoder(context).getFromLocationName(p0, 1)
+fun getStreetList(context: Context, p0: String): ArrayList<String>? {
+    val listAddress: List<android.location.Address>
+    val geocoder = Geocoder(context)
+    listAddress = geocoder.getFromLocationName(p0, 3)
+
+    val listItem = ArrayList<String>()
+    for (i in listAddress.indices) {
+        val element = listAddress[i]
+        val sb = StringBuffer()
+
+        if (!TextUtils.isEmpty(element.thoroughfare)) {
+            sb.append(element.thoroughfare)
+
+            if (!TextUtils.isEmpty(element.subThoroughfare)) {
+                sb.append(", " + element.subThoroughfare)
+            }
+            if (!TextUtils.isEmpty(element.locality)) {
+                sb.append(", " + element.locality)
+            }
+        }
+        listItem.add(i, sb.toString())
+    }
+
+    return listItem
 }
 
 fun getStreet(context: Context, p0: String): ItemMapPosition? {
@@ -88,7 +111,18 @@ fun getStreet(context: Context, p0: String): ItemMapPosition? {
         val addressList: List<android.location.Address> = Geocoder(context).getFromLocationName(p0, 1)
         if (!addressList.isEmpty()) {
             val address = addressList[0]
-            ItemMapPosition(address.thoroughfare + ", " + address.subThoroughfare, LatLng(address.latitude, address.longitude))
+            val sb = StringBuilder()
+            if (!TextUtils.isEmpty(address.thoroughfare)) {
+                sb.append(address.thoroughfare)
+
+                if (!TextUtils.isEmpty(address.subThoroughfare)) {
+                    sb.append(", " + address.subThoroughfare)
+                }
+                if (!TextUtils.isEmpty(address.locality)) {
+                    sb.append(", " + address.locality)
+                }
+                ItemMapPosition(sb.toString(), LatLng(address.latitude, address.longitude))
+            } else null
         } else null
     } else null
 }

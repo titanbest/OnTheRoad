@@ -35,11 +35,30 @@
 
     <com.google.android.gms.maps.MapView
         android:id="@+id/defaultMap"
-        android:visibility="gone"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_below="@id/editDirectionAddress"
         android:layout_height="match_parent" />
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/textViewDistance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/editDirectionAddress"
+        android:layout_margin="5dp"
+        android:textSize="21sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/holo_red_dark"/>
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/textViewDuration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textViewDistance"
+        android:layout_margin="5dp"
+        android:textSize="21sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/holo_red_dark"/>
 
     <android.support.v7.widget.AppCompatImageButton
         android:id="@+id/buttonMoveCar"

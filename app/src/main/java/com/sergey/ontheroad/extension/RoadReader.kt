@@ -1,6 +1,5 @@
 package com.sergey.ontheroad.extension
 
-import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import com.sergey.domain.entity.Step
 
@@ -48,7 +47,6 @@ private fun decode(encoded: String): List<LatLng> {
         val p = LatLng(lat.toDouble() / 1E5,
                 lng.toDouble() / 1E5)
 
-        Log.d("decodePolyline", "Polyline: " + p.latitude + "," + p.longitude)
         poly.add(p)
     }
 
