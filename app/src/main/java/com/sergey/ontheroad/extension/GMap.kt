@@ -9,6 +9,7 @@ import android.location.Geocoder
 import android.location.Location
 import android.support.v4.content.ContextCompat
 import android.text.TextUtils
+import android.util.Log
 import android.view.animation.LinearInterpolator
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -16,6 +17,10 @@ import com.google.android.gms.maps.model.*
 import com.sergey.ontheroad.models.ItemMapPosition
 import com.sergey.ontheroad.utils.LatLngInterpolator
 import com.sergey.ontheroad.view.fragments.MapsFragment
+import io.reactivex.Maybe
+import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 
 fun GoogleMap.draw(context: Context, location: LatLng, resDrawable: Int, title: String) =
         this.addMarker(MarkerOptions()
@@ -62,8 +67,6 @@ fun getBitmapFromVectorDrawable(context: Context, drawableId: Int): BitmapDescri
     return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
 
-//fun splitString(str: String): String = str.substring(0, str.indexOf(','))
-
 fun getBearing(begin: LatLng, end: LatLng): Float {
     val lat = Math.abs(begin.latitude - end.latitude)
     val lng = Math.abs(begin.longitude - end.longitude)
@@ -80,37 +83,34 @@ fun getBearing(begin: LatLng, end: LatLng): Float {
     return -1f
 }
 
-fun getStreetList(context: Context, p0: String): ArrayList<String>? {
-    val listAddress: List<android.location.Address>
-    val geocoder = Geocoder(context)
-    listAddress = geocoder.getFromLocationName(p0, 3)
+fun getStreetList(context: Context, p0:String): Maybe<ArrayList<String>>? = Single.just(p0)
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .map { Geocoder(context).getFromLocationName(p0, 5) }
+        .filter { it.isNotEmpty()}
+        .map {
+            val list = ArrayList<String>()
+            for (i in it.indices) {
+                val element = it[i]
+                val sb = StringBuffer()
 
-    val listItem = ArrayList<String>()
-    for (i in listAddress.indices) {
-        val element = listAddress[i]
-        val sb = StringBuffer()
-
-        if (!TextUtils.isEmpty(element.thoroughfare)) {
-            sb.append(element.thoroughfare)
-
-            if (!TextUtils.isEmpty(element.subThoroughfare)) {
-                sb.append(", " + element.subThoroughfare)
+                sb.append(element.getAddressLine(0)).append("\n")
+                for (j in 1 until element.maxAddressLineIndex) {
+                    sb.append(element.getAddressLine(j)).append(", ")
+                }
+                val lm = StringBuilder(sb.substring(0, sb.length - 2))
+                list.add(i, lm.toString())
             }
-            if (!TextUtils.isEmpty(element.locality)) {
-                sb.append(", " + element.locality)
-            }
+            return@map list
         }
-        listItem.add(i, sb.toString())
-    }
+        .doOnError { Log.d("DLOG", it.message) }
 
-    return listItem
-}
+fun getStreet(context: Context, p0: String): Maybe<ItemMapPosition>? = Single.just(p0)
+        .map { Geocoder(context).getFromLocationName(p0, 1) }
+        .filter { it.isNotEmpty()}
+        .map {
 
-fun getStreet(context: Context, p0: String): ItemMapPosition? {
-    return if (!p0.isEmpty()) {
-        val addressList: List<android.location.Address> = Geocoder(context).getFromLocationName(p0, 1)
-        if (!addressList.isEmpty()) {
-            val address = addressList[0]
+            val address = it[0]
             val sb = StringBuilder()
             if (!TextUtils.isEmpty(address.thoroughfare)) {
                 sb.append(address.thoroughfare)
@@ -121,10 +121,10 @@ fun getStreet(context: Context, p0: String): ItemMapPosition? {
                 if (!TextUtils.isEmpty(address.locality)) {
                     sb.append(", " + address.locality)
                 }
-                ItemMapPosition(sb.toString(), LatLng(address.latitude, address.longitude))
-            } else null
-        } else null
-    } else null
-}
+            }
+
+            ItemMapPosition(sb.toString(), LatLng(address.latitude, address.longitude))
+        }
+        .doOnError { Log.d("DLOG", it.message) }
 
 

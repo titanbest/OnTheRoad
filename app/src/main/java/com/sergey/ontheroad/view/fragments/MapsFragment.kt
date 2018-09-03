@@ -5,10 +5,11 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
 import android.text.Editable
+import android.text.TextUtils
 import android.text.TextWatcher
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.ArrayAdapter
+import android.widget.AdapterView
 import android.widget.TextView
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -17,12 +18,10 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.sergey.ontheroad.R
 import com.sergey.ontheroad.extension.*
+import com.sergey.ontheroad.models.GeoSearchResult
 import com.sergey.ontheroad.models.ItemMapPosition
 import com.sergey.ontheroad.view.base.BaseFragment
 import com.sergey.ontheroad.viewmodel.MainViewModel
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_maps.*
 import java.util.concurrent.TimeUnit
 
@@ -38,6 +37,7 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
         super.onViewCreated(view, savedInstanceState)
         setMapSettings(savedInstanceState)
         initView()
+        initEditAddressView()
     }
 
     private fun setMapSettings(savedInstanceState: Bundle?) = defaultMap.let {
@@ -74,67 +74,75 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
     private fun moveCarOnTheRoad(car: LatLng?) {
         targetLocation.latitude = car!!.latitude
         targetLocation.longitude = car.longitude
-
         mMap.animateMarker(markerCar!!, targetLocation)
     }
 
-    private fun showData(pointList: ArrayList<LatLng>?) {
+    private fun drawRoad(pointList: ArrayList<LatLng>?) {
         mMap.paintPolyline(pointList!!)
     }
 
-    private fun setAutocompliteList(list: ArrayList<String>?) {
-        list?.let {
-            val adapterCountries = ArrayAdapter(activity!!, android.R.layout.simple_list_item_1, list)
-            editDirectionAddress.setAdapter(adapterCountries)
-        }
-    }
-
     @SuppressLint("SetTextI18n")
-    private fun setTextDistance(distance: Int?){
+    private fun setTextDistance(distance: String?) {
         textViewDistance.text = "Distance: $distance"
     }
 
     @SuppressLint("SetTextI18n")
-    private fun setTextDuration(duration: Int?){
+    private fun setTextDuration(duration: String?) {
         textViewDuration.text = "Duration: $duration"
     }
 
     private fun initView() {
+        buttonMoveCar.setOnClickListener {
+            observe(viewModel.getDrawRoad, ::drawRoad)
+            observe(viewModel.getFullDistance, ::setTextDistance)
+            observe(viewModel.getFullDuration, ::setTextDuration)
+            TimeUnit.MILLISECONDS.sleep(1500)
+            observe(viewModel.moveCarOnTheMap, ::moveCarOnTheRoad)
+        }
+
+        searchEditAddress.setOnClickListener {
+            editDirectionAddress.text?.let {
+                if (!TextUtils.isEmpty(it)){
+                    viewModel.setSearchAddress(activity!!, it.toString())
+                    observe(viewModel.getSearchAddress, ::setDirectPosition)
+                }
+            }
+        }
+        clearEditAddress.setOnClickListener { editDirectionAddress.setText("") }
+    }
+
+    private fun initEditAddressView() {
+        editDirectionAddress.threshold = THRESHOLD
+        editDirectionAddress.setAdapter(GeoAutoCompleteAdapter(activity!!))
+
+        editDirectionAddress.onItemClickListener = AdapterView.OnItemClickListener { adapterView, _, position, _ ->
+            val result = adapterView.getItemAtPosition(position) as GeoSearchResult
+            editDirectionAddress.setText(result.address)
+        }
+
         editDirectionAddress.setOnEditorActionListener(TextView.OnEditorActionListener { text, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                viewModel.setSearchAddress(activity!!, text.text.toString())
-                observe(viewModel.getSearchAddress, ::setDirectPosition)
-                this@MapsFragment.editDirectionAddress.clearFocus()
+                text.text?.let {
+                    if (!TextUtils.isEmpty(it)) {
+                        viewModel.setSearchAddress(activity!!, it.toString())
+                        observe(viewModel.getSearchAddress, ::setDirectPosition)
+                        this@MapsFragment.editDirectionAddress.clearFocus()
+                    }
+                }
                 return@OnEditorActionListener false
             }
             false
         })
 
         editDirectionAddress.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(p0: Editable?) {}
-
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                Observable.just(p0.toString())
-                        .debounce(300, TimeUnit.MILLISECONDS)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .filter { !it.isEmpty() }
-                        .subscribe({
-                            viewModel.setSearchAddressList(activity!!, it)
-                        })
-                observe(viewModel.getSearchAddressList, ::setAutocompliteList)
+            override fun afterTextChanged(p0: Editable?) {
+                clearEditAddress.visibility = if (p0!!.isNotEmpty()) View.VISIBLE else View.GONE
             }
+
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
-
-        buttonMoveCar.setOnClickListener {
-            observe(viewModel.getData, ::showData)
-            observe(viewModel.getFullDistance, ::setTextDistance)
-            observe(viewModel.getFullDuration, ::setTextDuration)
-            TimeUnit.MILLISECONDS.sleep(1500)
-            observe(viewModel.moveCarOnTheMap, ::moveCarOnTheRoad)
-        }
     }
 
     override fun onPause() {
@@ -143,6 +151,8 @@ class MapsFragment : BaseFragment(R.layout.fragment_maps), OnMapReadyCallback {
     }
 
     companion object {
+        const val THRESHOLD = 5
+        const val MAX_RESULTS = 5
         const val DELAY_TIME = 20L
         const val BASE_ZOOM = 13f
     }

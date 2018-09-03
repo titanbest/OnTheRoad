@@ -20,18 +20,42 @@
             android:text="@string/goods_transit"/>
     </android.support.v7.widget.Toolbar>
 
-    <AutoCompleteTextView
+    <android.support.v7.widget.AppCompatAutoCompleteTextView
         android:id="@+id/editDirectionAddress"
-        style="@style/Toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_toStartOf="@id/clearEditAddress"
+        android:background="@color/colorLightBlack"
         android:layout_below="@+id/toolbar"
-        android:drawableEnd="@drawable/ic_search"
         android:imeOptions="actionSearch"
         android:inputType="text"
-        android:hint="Set address"
+        android:hint="@string/edit_text_address_hint"
         android:maxLines="1"
         android:paddingEnd="16dp"
-        android:paddingStart="16dp"
-        tools:ignore="RtlHardcoded" />
+        android:paddingStart="16dp"/>
+
+    <android.support.v7.widget.AppCompatImageView
+        android:id="@+id/clearEditAddress"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_below="@id/toolbar"
+        android:visibility="gone"
+        android:src="@drawable/ic_clear"
+        android:layout_above="@id/defaultMap"
+        android:padding="5dp"
+        android:background="@color/colorLightBlack"
+        android:layout_toStartOf="@id/searchEditAddress"/>
+
+    <android.support.v7.widget.AppCompatImageView
+        android:id="@+id/searchEditAddress"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_below="@id/toolbar"
+        android:src="@drawable/ic_search"
+        android:layout_above="@id/defaultMap"
+        android:padding="5dp"
+        android:background="@color/colorLightBlack"
+        android:layout_alignParentEnd="true"/>
 
     <com.google.android.gms.maps.MapView
         android:id="@+id/defaultMap"

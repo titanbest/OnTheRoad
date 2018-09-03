@@ -2,7 +2,6 @@ package com.sergey.ontheroad.viewmodel
 
 import android.arch.lifecycle.MutableLiveData
 import android.content.Context
-import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import com.sergey.data.entity.SendAddress
 import com.sergey.data.mapper.AddressMapper
@@ -12,14 +11,14 @@ import com.sergey.domain.interactor.GetRoadUseCase
 import com.sergey.ontheroad.extension.Flow
 import com.sergey.ontheroad.extension.decodePolyline
 import com.sergey.ontheroad.extension.getStreet
-import com.sergey.ontheroad.extension.getStreetList
 import com.sergey.ontheroad.models.ItemMapPosition
 import com.sergey.ontheroad.view.fragments.MapsFragment.Companion.DELAY_TIME
 import io.reactivex.Observable
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class MainViewModel @Inject constructor(val getRoadFlow: Flow<AddressDomain, Routes, GetRoadUseCase>
+class MainViewModel @Inject constructor(
+        val getRoadFlow: Flow<AddressDomain, Routes, GetRoadUseCase>
 ) : BaseViewModel() {
 
     private var polyListRoute = ArrayList<LatLng>()
@@ -27,9 +26,8 @@ class MainViewModel @Inject constructor(val getRoadFlow: Flow<AddressDomain, Rou
     private lateinit var route: Routes
     private val car = ItemMapPosition("Zonda Pagani", LatLng(49.98865707, 36.22775511))
     private var directPosition: ItemMapPosition? = null
-    private var directPositionList: ArrayList<String>? = null
-    private var fullDistance: Int = 0
-    private var fullDuration: Int = 0
+    private var fullDistance: String = ""
+    private var fullDuration: String = ""
 
     val basePosition: MutableLiveData<ItemMapPosition> = object : MutableLiveData<ItemMapPosition>() {
         override fun onActive() {
@@ -38,34 +36,36 @@ class MainViewModel @Inject constructor(val getRoadFlow: Flow<AddressDomain, Rou
         }
     }
 
-    val getFullDistance: MutableLiveData<Int> = object : MutableLiveData<Int>() {
+    val getFullDistance: MutableLiveData<String> = object : MutableLiveData<String>() {
         override fun onActive() {
             super.onActive()
             value = fullDistance
         }
     }
 
-    val getFullDuration: MutableLiveData<Int> = object : MutableLiveData<Int>() {
+    val getFullDuration: MutableLiveData<String> = object : MutableLiveData<String>() {
         override fun onActive() {
             super.onActive()
             value = fullDuration
         }
     }
 
-    val getData: MutableLiveData<ArrayList<LatLng>> = object : MutableLiveData<ArrayList<LatLng>>() {
+    val getDrawRoad: MutableLiveData<ArrayList<LatLng>> = object : MutableLiveData<ArrayList<LatLng>>() {
         override fun onActive() {
             super.onActive()
 
-            getRoadFlow.run(AddressMapper.transformToDomain(SendAddress(
-                    car.position,
-                    directPosition!!.position))
-            ) {
-                route = it
-                polyListRoute.clear()
-                polyListRoute = decodePolyline(it.routes[0].legs[0].steps)
-                getFullDistance.value = it.routes[0].legs[0].distance.value
-                getFullDuration.value = it.routes[0].legs[0].duration.value
-                value = polyListRoute
+            directPosition?.let {
+                getRoadFlow.run(AddressMapper.transformToDomain(SendAddress(
+                        car.position,
+                        directPosition!!.position))
+                ) {
+                    route = it
+                    polyListRoute.clear()
+                    polyListRoute = decodePolyline(it.routes[0].legs[0].steps)
+                    getFullDistance.value = it.routes[0].legs[0].distance.text
+                    getFullDuration.value = it.routes[0].legs[0].duration.text
+                    value = polyListRoute
+                }
             }
         }
     }
@@ -92,26 +92,13 @@ class MainViewModel @Inject constructor(val getRoadFlow: Flow<AddressDomain, Rou
         }
     }
 
-    val getSearchAddressList: MutableLiveData<ArrayList<String>> = object : MutableLiveData<ArrayList<String>>() {
-        override fun onActive() {
-            super.onActive()
-            value = directPositionList
+    fun setSearchAddress(context: Context, p0: String?) =
+        getStreet(context, p0!!)?.let {
+            it.subscribe { t1 ->
+                directPosition = t1
+                getSearchAddress.value = t1
+            }
         }
-    }
-
-    fun setSearchAddressList(context: Context, p0: String?) = p0?.let {
-        getStreetList(context, it)?.let {
-            directPositionList = it
-            getSearchAddressList.value = it
-        }
-    }
-
-    fun setSearchAddress(context: Context, p0: String?) = p0?.let {
-        getStreet(context, p0)?.let {
-            directPosition = it
-            getSearchAddress.value = it
-        }
-    }
 }
 
 //  Харьков, полтавский шлях 134
